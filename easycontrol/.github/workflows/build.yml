@@ -1,0 +1,48 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ci-test]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Android SDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          mkdir -p android-sdk/cmdline-tools
+          cd android-sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools latest
+          echo "android_sdk_root=$PWD" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$PWD" >> $GITHUB_ENV
+          echo "PATH=$PATH:$PWD/latest/bin:$PWD/platform-tools" >> $GITHUB_ENV
+
+      - name: Accept licenses
+        run: yes | $ANDROID_HOME/latest/bin/sdkmanager --licenses 2>/dev/null || true
+
+      - name: Build Server Module
+        run: ./gradlew :server:build -x test 2>&1 | tail -20
+
+      - name: Build App Module
+        run: ./gradlew :app:assembleRelease 2>&1 | tail -30
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: easycontrol-apk
+          path: app/build/outputs/apk/release/*.apk
