@@ -35,10 +35,10 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 
-      - name: Build server module
+      - name: Build server and copy jar to raw/
         run: |
           chmod +x easycontrol/gradlew
-          cd easycontrol && ./gradlew :server:build -x test -x lint
+          cd easycontrol && ./gradlew :server:copyRelease -x lint
 
       - name: Build app APK
         run: cd easycontrol && ./gradlew :app:assembleRelease -x lint
