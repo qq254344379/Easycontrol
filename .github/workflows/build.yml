@@ -1,6 +1,8 @@
 name: Build APK
 
 on:
+  push:
+    branches: [master]
   workflow_dispatch:
 
 jobs:
@@ -33,37 +35,28 @@ jobs:
           yes | sdkmanager --licenses
           sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Apply checkActive bypass
+      - name: Build server module
+        env:
+          ANDROID_HOME: ${{ github.workspace }}/android-sdk
+          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
           chmod +x easycontrol/gradlew
-          # Disable lint in server build.gradle
-          if ! grep -q 'abortOnError false' easycontrol/server/build.gradle; then
-            sed -i '/android {/a\n  lint { abortOnError false checkReleaseBuilds false }' easycontrol/server/build.gradle
-          fi
-          # Apply checkActive bypass to MainActivity.java
-          sed -i 's/if (!new Setting(this).getIsActive()) startActivity(new Intent(MainActivity.this, ActiveActivity.class));/\/\/ if (!new Setting(this).getIsActive()) startActivity(new Intent(MainActivity.this, ActiveActivity.class));/' easycontrol/app/src/main/java/top/saymzx/easycontrol/app/MainActivity.java
+          cd easycontrol && ./gradlew :server:assembleRelease -x lint -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease
 
-      - name: Build server module
+      - name: Copy server jar to raw/
         run: |
-          cd easycontrol && ./gradlew :server:assembleRelease -x lint -x lintRelease -x lintVitalRelease -x lintVitalAnalyze -x lintVitalReport
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-
-      - name: Copy server jar
-        run: |
-          cd easycontrol
-          cp server/build/outputs/apk/release/server-release-unsigned.apk app/src/main/res/raw/easycontrol_server.jar
+          mkdir -p easycontrol/app/src/main/res/raw
+          cp easycontrol/server/build/outputs/apk/release/server-release-unsigned.apk easycontrol/app/src/main/res/raw/easycontrol_server.jar
 
       - name: Build app APK
-        run: |
-          cd easycontrol && ./gradlew :app:assembleRelease -x lint -x lintRelease -x lintVitalRelease -x lintVitalAnalyze -x lintVitalReport
         env:
           ANDROID_HOME: ${{ github.workspace }}/android-sdk
           ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+        run: |
+          cd easycontrol && ./gradlew :app:assembleRelease -x lint -x lintVitalRelease -x lintVitalAnalyzeRelease -x lintVitalReportRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: EasyControl-APK-Clean
+          name: EasyControl-APK
           path: easycontrol/app/build/outputs/apk/release/*.apk
