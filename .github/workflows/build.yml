@@ -17,8 +17,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Setup Android SDK
+      - name: Setup Android SDK (command line tools)
         run: |
           mkdir -p android-sdk/cmdline-tools
           cd android-sdk/cmdline-tools
@@ -26,10 +27,10 @@ jobs:
           unzip -q cmdline-tools.zip
           mv cmdline-tools latest
           echo "ANDROID_HOME=$PWD" >> $GITHUB_ENV
-          echo "PATH=$PATH:$PWD/latest/bin" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$PWD" >> $GITHUB_ENV
 
       - name: Accept SDK licenses
-        run: yes | $ANDROID_HOME/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+        run: yes | android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: Build server module
         run: |
