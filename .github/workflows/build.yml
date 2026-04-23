@@ -32,7 +32,9 @@ jobs:
         run: yes | $ANDROID_HOME/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: Build server module
-        run: cd easycontrol && ./gradlew :server:build -x test
+        run: |
+          chmod +x easycontrol/gradlew
+          cd easycontrol && ./gradlew :server:build -x test
 
       - name: Build app APK
         run: cd easycontrol && ./gradlew :app:assembleRelease
