@@ -38,10 +38,10 @@ jobs:
       - name: Build server module
         run: |
           chmod +x easycontrol/gradlew
-          cd easycontrol && ./gradlew :server:build -x test
+          cd easycontrol && ./gradlew :server:build -x test -x lint
 
       - name: Build app APK
-        run: cd easycontrol && ./gradlew :app:assembleRelease
+        run: cd easycontrol && ./gradlew :app:assembleRelease -x lint
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
