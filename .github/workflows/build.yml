@@ -32,13 +32,13 @@ jobs:
         run: yes | $ANDROID_HOME/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: Build server module
-        run: ./gradlew :server:build -x test
+        run: cd easycontrol && ./gradlew :server:build -x test
 
       - name: Build app APK
-        run: ./gradlew :app:assembleRelease
+        run: cd easycontrol && ./gradlew :app:assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: EasyControl-APK
-          path: app/build/outputs/apk/release/*.apk
+          path: easycontrol/app/build/outputs/apk/release/*.apk
