@@ -70,8 +70,10 @@ public class MainActivity extends Activity {
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (resultCode == RESULT_OK && requestCode == 1) {
       Uri uri = data.getData();
-      if (uri == null) deviceListAdapter.pushFile(null, null);
-      ;
+      if (uri == null) {
+        deviceListAdapter.pushFile(null, null);
+        return;
+      }
       try {
         String fileName = "easycontrol_push_file";
         ContentResolver contentProvider = getContentResolver();
@@ -87,10 +89,9 @@ public class MainActivity extends Activity {
         deviceListAdapter.pushFile(inputStream, fileName);
       } catch (IOException ignored) {
         deviceListAdapter.pushFile(null, null);
-        ;
       }
     }
-    super.onActivityResult(requestCode, resultCode, Intent data);
+    super.onActivityResult(requestCode, resultCode, data);
   }
 
 }
